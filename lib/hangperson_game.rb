@@ -4,18 +4,21 @@ class HangpersonGame
   # to make the tests in spec/hangperson_game_spec.rb pass.
 
   # Get a word from remote "random word" service
-
-  # def initialize()
-  # end
-  attr_accessor :word, :guesses, :wrong_guesses, :word_with_guesses, :check_win_or_lose
+  attr_accessor :word, 
+                :guesses, 
+                :wrong_guesses,
+                :word_with_guesses,
+                :check_win_or_lose
   
-  def initialize(word, guesses='', wrong_guesses='')
+  def initialize(word)
+    #Variables públicas (aparecen en el attr accesor)
     @word = word
-    @guesses = guesses
-    @wrong_guesses = wrong_guesses
+    @guesses = ''
+    @wrong_guesses = ''
     @word_with_guesses = @word.gsub(/\w/,'-')
-    @attempts = 0
     @check_win_or_lose = :play
+    #Variables privadas
+    @attempts = 0
   end
 
   def self.get_random_word
@@ -24,44 +27,58 @@ class HangpersonGame
     uri = URI('http://watchout4snakes.com/wo4snakes/Random/RandomWord')
     Net::HTTP.post_form(uri ,{}).body
   end
+  
   def guess(character)
     
+    #Se asegura que no existan casos invalidos
     if(character == '' || character =~ /\W/ || character == nil)
-      raise(ArgumentError, "Should be a character not empty")
++      raise(ArgumentError, 'Should be a character not empty')
     end
     
-    @attempts += 1
     
-    character = character.downcase
-    valid = @word.index(character) != nil && @guesses != character
+    #expresion regular para comparar
+    check_regex = /#{character}/i
     
-    if(valid)
-      @guesses = character
+    #Se asegura que la letra ingresada no sea repetida
+    if(@guesses !~ check_regex && @wrong_guesses !~ check_regex)
       
-      @word.each_char.with_index do |char, index|
-        if(char == character)
-          @word_with_guesses[index] = char
+      #nuevo intento
+      @attempts += 1
+      
+      #Caso correcto
+      if(@word =~ check_regex)
+        
+        @guesses += character
+        
+        #Buscamos las posiciones de los caracteres "matcheados" 
+        #y agregamos en la misma posicion la letra en la variable que muestra la palabra 
+        #con las letras acertadas
+        @word.each_char.with_index{ |char, index|
+          if(char == character)
+            @word_with_guesses[index] = char 
+          end
+        }
+        
+        #Comparamos si la palabra con las letras acertadas esta completa
+        if(@word_with_guesses == @word)
+          @check_win_or_lose = :win
         end
+        
+      #Caso incorrecto
+      else
+        
+        if(@attempts >= 7)
+          @check_win_or_lose = :lose
+        end
+        
+        @wrong_guesses += character
       end
-      
-      if(@word_with_guesses == @word)
-         @check_win_or_lose = :win
-      end
-      
-      return true
     else
-      @wrong_guesses = character
-      
-      if(@attempts == 7)
-        @check_win_or_lose = :lose
-      end
       return false
     end
     
-    
+    return true
     
   end
-  
-  
-  
+
 end

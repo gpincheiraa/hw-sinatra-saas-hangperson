@@ -1,9 +1,4 @@
 class HangpersonGame
-
-  # add the necessary class methods, attributes, etc. here
-  # to make the tests in spec/hangperson_game_spec.rb pass.
-
-  # Get a word from remote "random word" service
   attr_accessor :word, 
                 :guesses, 
                 :wrong_guesses,
@@ -35,8 +30,7 @@ class HangpersonGame
 +      raise(ArgumentError, 'Should be a character not empty')
     end
     
-    
-    #expresion regular para comparar
+    #expresion regular para comparar la letra ingresada
     check_regex = /#{character}/i
     
     #Se asegura que la letra ingresada no sea repetida
@@ -49,15 +43,9 @@ class HangpersonGame
       if(@word =~ check_regex)
         
         @guesses += character
-        
-        #Buscamos las posiciones de los caracteres "matcheados" 
-        #y agregamos en la misma posicion la letra en la variable que muestra la palabra 
-        #con las letras acertadas
-        @word.each_char.with_index{ |char, index|
-          if(char == character)
-            @word_with_guesses[index] = char 
-          end
-        }
+ 
+        #Hacemos una sustitución con los caracteres acertados
+        @word_with_guesses = @word.gsub(/[^#{@guesses}]/i, '-')
         
         #Comparamos si la palabra con las letras acertadas esta completa
         if(@word_with_guesses == @word)
@@ -76,9 +64,7 @@ class HangpersonGame
     else
       return false
     end
-    
     return true
-    
   end
 
 end
